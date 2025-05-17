@@ -1,139 +1,355 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#4a90e2">
-  <title>Tic-Tac-Toe</title>
-  <link rel="manifest" href="./manifest.json">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-      text-align: center;
-    }
-    #status {
-      margin: 20px;
-      padding: 10px;
-      border-radius: 5px;
-    }
-    .success {
-      background-color: #d4edda;
-      color: #155724;
-    }
-    .error {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-  </style>
-</head>
-<body>
-  <h1>Tic-Tac-Toe</h1>
-  <p>Basic PWA setup for a Tic-Tac-Toe game</p>
-  <div id="status">Checking service worker status...</div>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4a90e2">
+    <title>Tic-Tac-Toe</title>
+    <link rel="manifest" href="./manifest.json">
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        background-color: #f5f5f5;
+        transition: background-color 0.3s;
+      }
 
-  <div id="pwa-info">
-    <h2>PWA Features Active</h2>
-    <ul style="text-align: left; display: inline-block;">
-      <li>Service Worker for offline capabilities</li>
-      <li>Web App Manifest for installation</li>
-      <li>Responsive design</li>
-    </ul>
-  </div>
+      h1 {
+        color: #4a90e2;
+        margin-bottom: 20px;
+        text-align: center;
+      }
 
-  <p>This app is now ready to be enhanced with game functionality!</p>
+      .game-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
 
-  <button id="installButton" style="display: none;">Install App</button>
+      .board {
+        display: grid;
+        grid-template-columns: repeat(3, 100px);
+        grid-template-rows: repeat(3, 100px);
+        gap: 10px;
+        margin-bottom: 20px;
+      }
 
-  <script>
-    window.addEventListener('load', () => {
-      const statusEl = document.getElementById('status');
+      .cell {
+        width: 100px;
+        height: 100px;
+        background-color: #e9f0f8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+      }
 
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/tic-tac-toe-3x3/sw.js', {
-          scope: '/tic-tac-toe-3x3/'
-        })
-          .then(registration => {
-            console.log('ServiceWorker registered with scope:', registration.scope);
-            statusEl.textContent = 'PWA Service Worker registered successfully! This app can now work offline.';
-            statusEl.className = 'success';
-          })
-          .catch(error => {
-            console.error('ServiceWorker registration failed:', error);
-            statusEl.textContent = 'Service Worker registration failed: ' + error.message;
-            statusEl.className = 'error';
+      .cell:hover {
+        background-color: #d0e1f9;
+      }
+
+      .cell.x {
+        color: #e74c3c;
+      }
+
+      .cell.o {
+        color: #3498db;
+      }
+
+      .status {
+        font-size: 24px;
+        margin-bottom: 20px;
+        font-weight: bold;
+        color: #555;
+      }
+
+      button {
+        background-color: #4a90e2;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 18px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      button:hover {
+        background-color: #3a7bc8;
+      }
+
+      .winner-x .status {
+        color: #e74c3c;
+      }
+
+      .winner-o .status {
+        color: #3498db;
+      }
+
+      .cell.win {
+        animation: pulse 1s infinite;
+      }
+
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+
+      /* Dark mode */
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #222;
+          color: #fff;
+        }
+
+        h1 {
+          color: #5c9dff;
+        }
+
+        .game-container {
+          background-color: #333;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell {
+          background-color: #444;
+        }
+
+        .cell:hover {
+          background-color: #555;
+        }
+
+        .status {
+          color: #ddd;
+        }
+      }
+
+      /* Make it responsive */
+      @media (max-width: 400px) {
+        .board {
+          grid-template-columns: repeat(3, 80px);
+          grid-template-rows: repeat(3, 80px);
+        }
+
+        .cell {
+          width: 80px;
+          height: 80px;
+          font-size: 36px;
+        }
+
+        h1 {
+          font-size: 24px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="game-container">
+        <h1>Tic-Tac-Toe</h1>
+        <div class="status">X's turn</div>
+        <div class="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+        <button id="startOver">Start Over</button>
+    </div>
+
+    <button id="installButton" style="display: none;">Install App</button>
+
+    <script>
+      // Wait for the page to load
+      document.addEventListener('DOMContentLoaded', () => {
+        // Initialize the game
+        const game = {
+          board: Array(9).fill(''),
+          currentPlayer: 'X',
+          gameOver: false,
+          winningCombos: [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+            [0, 4, 8], [2, 4, 6]             // Diagonals
+          ]
+        };
+
+        // Elements
+        const cells = document.querySelectorAll('.cell');
+        const status = document.querySelector('.status');
+        const startOverBtn = document.getElementById('startOver');
+        const gameContainer = document.querySelector('.game-container');
+
+        // Cell click handler
+        function handleCellClick(e) {
+          const cell = e.target;
+          const index = cell.dataset.index;
+
+          // Return if cell is already filled or game is over
+          if (game.board[index] !== '' || game.gameOver) {
+            return;
+          }
+
+          // Update board array
+          game.board[index] = game.currentPlayer;
+
+          // Update UI
+          cell.textContent = game.currentPlayer;
+          cell.classList.add(game.currentPlayer.toLowerCase());
+
+          // Check for winner
+          if (checkWinner()) {
+            status.textContent = `${game.currentPlayer} wins!`;
+            game.gameOver = true;
+            gameContainer.classList.add(`winner-${game.currentPlayer.toLowerCase()}`);
+            return;
+          }
+
+          // Check for draw
+          if (game.board.every(cell => cell !== '')) {
+            status.textContent = 'Game ended in a draw!';
+            game.gameOver = true;
+            return;
+          }
+
+          // Switch player
+          game.currentPlayer = game.currentPlayer === 'X' ? 'O' : 'X';
+          status.textContent = `${game.currentPlayer}'s turn`;
+        }
+
+        // Check for winner
+        function checkWinner() {
+          return game.winningCombos.some(combo => {
+            if (
+              game.board[combo[0]] !== '' &&
+              game.board[combo[0]] === game.board[combo[1]] &&
+              game.board[combo[0]] === game.board[combo[2]]
+            ) {
+              // Highlight winning cells
+              combo.forEach(i => {
+                cells[i].classList.add('win');
+              });
+              return true;
+            }
+            return false;
           });
-      } else {
-        statusEl.textContent = 'Service Workers are not supported in this browser';
-        statusEl.className = 'error';
-      }
-    });
+        }
 
-    let deferredPrompt;
-    const installButton = document.getElementById('installButton');
-    console.log(`installButton <${installButton}>`);
+        // Reset game
+        function resetGame() {
+          game.board = Array(9).fill('');
+          game.currentPlayer = 'X';
+          game.gameOver = false;
 
-    // Listen for the beforeinstallprompt event
-    window.addEventListener('beforeinstallprompt', (e) => {
-      console.log(`Inside beforeinstallprompt`);
-      // Prevent Chrome from automatically showing the prompt
-      e.preventDefault();
+          cells.forEach(cell => {
+            cell.textContent = '';
+            cell.className = 'cell';
+          });
 
-      // Stash the event so it can be triggered later
-      deferredPrompt = e;
+          status.textContent = `${game.currentPlayer}'s turn`;
+          gameContainer.classList.remove('winner-x', 'winner-o');
+        }
 
-      // Show the install button
-      installButton.style.display = 'block';
-    });
+        // Add event listeners
+        cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+        startOverBtn.addEventListener('click', resetGame);
 
-    // Setup install button click handler
-    installButton.addEventListener('click', async () => {
-      if (!deferredPrompt) {
-        return;
-      }
+        // Register service worker for PWA functionality
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then(registration => {
+              console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }).catch(err => {
+              console.log('ServiceWorker registration failed: ', err);
+            });
+          });
+        } else {
+          console.error('Service Workers are not supported in this browser');
+        }
+      });
 
-      // Show the installation prompt
-      deferredPrompt.prompt();
+      let deferredPrompt;
+      const installButton = document.getElementById('installButton');
+      console.log(`installButton <${installButton}>`);
 
-      // Wait for the user to respond to the prompt
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log(`User response to the install prompt: ${outcome}`);
+      // Listen for the beforeinstallprompt event
+      window.addEventListener('beforeinstallprompt', (e) => {
+        console.log(`Inside beforeinstallprompt`);
+        // Prevent Chrome from automatically showing the prompt
+        e.preventDefault();
 
-      // We've used the prompt, and can't use it again, discard it
-      deferredPrompt = null;
+        // Stash the event so it can be triggered later
+        deferredPrompt = e;
 
-      // Hide the install button
-      installButton.style.display = 'none';
+        // Show the install button
+        installButton.style.display = 'block';
+      });
 
-      // If user accepted, initiate the caching process
-      if (outcome === 'accepted') {
-        // Now we can start caching assets
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          // Signal the service worker to cache files
-          navigator.serviceWorker.controller.postMessage({
-            action: 'CACHE_ASSETS'
+      // Setup install button click handler
+      installButton.addEventListener('click', async () => {
+        if (!deferredPrompt) {
+          return;
+        }
+
+        // Show the installation prompt
+        deferredPrompt.prompt();
+
+        // Wait for the user to respond to the prompt
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to the install prompt: ${outcome}`);
+
+        // We've used the prompt, and can't use it again, discard it
+        deferredPrompt = null;
+
+        // Hide the install button
+        installButton.style.display = 'none';
+
+        // If user accepted, initiate the caching process
+        if (outcome === 'accepted') {
+          // Now we can start caching assets
+          if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            // Signal the service worker to cache files
+            navigator.serviceWorker.controller.postMessage({
+              action: 'CACHE_ASSETS'
+            });
+          }
+        }
+      });
+
+      // Function to check for updates
+      function checkForUpdates() {
+        if ('serviceWorker' in navigator) {
+          // Force the service worker to update
+          navigator.serviceWorker.getRegistration().then(registration => {
+            if (registration) {
+              registration.update();
+            }
           });
         }
       }
-    });
 
-    // Function to check for updates
-    function checkForUpdates() {
-      if ('serviceWorker' in navigator) {
-        // Force the service worker to update
-        navigator.serviceWorker.getRegistration().then(registration => {
-          if (registration) {
-            registration.update();
-          }
-        });
-      }
-    }
+      // Add an update button to your UI
+      document.getElementById('updateButton').addEventListener('click', checkForUpdates);
 
-    // Add an update button to your UI
-    document.getElementById('updateButton').addEventListener('click', checkForUpdates);
-
-  </script>
-</body>
+    </script>
+  </body>
 </html>
