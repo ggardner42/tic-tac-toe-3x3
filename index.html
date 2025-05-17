@@ -34,7 +34,7 @@
       const statusEl = document.getElementById('status');
       
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js', {
+        navigator.serviceWorker.register('/tic-tac-toe-3x3/sw.js', {
           scope: '/tic-tac-toe-3x3/'
         })
           .then(registration => {
