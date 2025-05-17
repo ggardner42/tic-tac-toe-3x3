@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4a90e2">
+  <title>Tic-Tac-Toe</title>
+  <link rel="manifest" href="./manifest.json">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+    #status {
+      margin: 20px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+  <script>
+    // PWA Service Worker registration - properly configured for localhost
+    window.addEventListener('load', () => {
+      const statusEl = document.getElementById('status');
+      
+      // First check if we're in a secure context
+      if (!window.isSecureContext) {
+        statusEl.textContent = 'ERROR: Not in a secure context! Service workers require HTTPS or localhost.';
+        statusEl.className = 'error';
+        console.error('You must access this page via http://localhost:3000 - IP addresses require HTTPS');
+        return;
+      }
+      
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+          .then(registration => {
+            console.log('ServiceWorker registered with scope:', registration.scope);
+            statusEl.textContent = 'PWA Service Worker registered successfully! This app can now work offline.';
+            statusEl.className = 'success';
+          })
+          .catch(error => {
+            console.error('ServiceWorker registration failed:', error);
+            statusEl.textContent = 'Service Worker registration failed: ' + error.message;
+            statusEl.className = 'error';
+          });
+      } else {
+        statusEl.textContent = 'Service Workers are not supported in this browser';
+        statusEl.className = 'error';
+      }
+    });
+  </script>
+</head>
+<body>
+  <h1>Tic-Tac-Toe PWA</h1>
+  <p>Basic PWA setup for a Tic-Tac-Toe game</p>
+  <div id="status">Checking service worker status...</div>
+  
+  <div id="pwa-info">
+    <h2>PWA Features Active</h2>
+    <ul style="text-align: left; display: inline-block;">
+      <li>Service Worker for offline capabilities</li>
+      <li>Web App Manifest for installation</li>
+      <li>Responsive design</li>
+    </ul>
+  </div>
+  
+  <p>This app is now ready to be enhanced with game functionality!</p>
+</body>
+</html>

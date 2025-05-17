@@ -1,0 +1,17 @@
+{
+  "name": "Tic-Tac-Toe",
+  "short_name": "TicTacToe",
+  "description": "A simple Tic-Tac-Toe game",
+  "id": "v1",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#4a90e2",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='50' fill='%234a90e2'/%3E%3Cpath d='M141 141L211 211M211 141L141 211' stroke='white' stroke-width='25' stroke-linecap='round'/%3E%3Ccircle cx='316' cy='176' r='50' stroke='white' stroke-width='25' fill='none'/%3E%3Cpath d='M141 316L211 386M211 316L141 386' stroke='white' stroke-width='25' stroke-linecap='round'/%3E%3Ccircle cx='316' cy='351' r='50' stroke='white' stroke-width='25' fill='none'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
