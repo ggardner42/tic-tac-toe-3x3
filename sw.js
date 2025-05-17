@@ -6,78 +6,55 @@ const urlsToCache = [
   './manifest.json'
 ];
 
-// Install event - cache our static assets
+// The service worker will register but stay dormant until installation
 self.addEventListener('install', event => {
-  console.log('Service Worker: Installing...');
-  
-  event.waitUntil(
+  // Don't automatically activate or precache anything
+  // Skip the "waiting" state
+  self.skipWaiting();
+});
+
+// Listen for messages from the client
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.action === 'CACHE_ASSETS') {
+    // User chose to install, now cache the assets
     caches.open(CACHE_NAME)
-    .then(cache => {
-      console.log('Service Worker: Caching files');
-      return cache.addAll(urlsToCache);
-    })
-    .then(() => {
-      console.log('Service Worker: All files cached');
-      return self.skipWaiting();  // Force activation
-    })
+      .then(cache => {
+        console.log('Caching app shell files');
+        return cache.addAll(urlsToCache);
+      })
+      .catch(error => {
+        console.error('Caching failed:', error);
+      });
+  }
+});
+
+// Handle fetch events (only return cached responses if they exist)
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        // Return the cached response if available
+        if (response) {
+          return response;
+        }
+        // Otherwise pass the request to the network
+        return fetch(event.request);
+      })
   );
 });
 
-// Activate event - clean up old caches
+// In your service worker, handle updates
 self.addEventListener('activate', event => {
-  console.log('Service Worker: Activating...');
-  
+  // Clear old caches when a new service worker activates
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
-        cacheNames.map(cache => {
-          if (cache !== CACHE_NAME) {
-            console.log('Service Worker: Clearing old cache:', cache);
-            return caches.delete(cache);
-          }
+        cacheNames.filter(cacheName => {
+          return cacheName !== CACHE_NAME;
+        }).map(cacheName => {
+          return caches.delete(cacheName);
         })
       );
-    }).then(() => {
-      console.log('Service Worker: Activated');
-      return self.clients.claim();  // Take control of all clients
-    })
-  );
-});
-
-// Fetch event - serve from cache if available, otherwise fetch from network
-self.addEventListener('fetch', event => {
-  console.log('Service Worker: Fetching', event.request.url);
-  
-  event.respondWith(
-    caches.match(event.request)
-    .then(response => {
-      // Cache hit - return the response from the cached version
-      if (response) {
-        console.log('Service Worker: Found in cache:', event.request.url);
-        return response;
-      }
-      
-      // Not in cache - fetch from network
-      return fetch(event.request).then(networkResponse => {
-        // Don't cache non-successful responses
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          return networkResponse;
-        }
-        
-        // Clone the response since it can only be consumed once
-        const responseToCache = networkResponse.clone();
-        
-        caches.open(CACHE_NAME)
-          .then(cache => {
-            cache.put(event.request, responseToCache);
-            console.log('Service Worker: Caching new resource:', event.request.url);
-          });
-          
-        return networkResponse;
-      });
-    }).catch(error => {
-      console.error('Service Worker: Fetch failed:', error);
-      // You could return a custom offline page here
     })
   );
 });

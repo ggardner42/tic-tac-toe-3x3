@@ -28,11 +28,29 @@
       color: #721c24;
     }
   </style>
+</head>
+<body>
+  <h1>Tic-Tac-Toe</h1>
+  <p>Basic PWA setup for a Tic-Tac-Toe game</p>
+  <div id="status">Checking service worker status...</div>
+
+  <div id="pwa-info">
+    <h2>PWA Features Active</h2>
+    <ul style="text-align: left; display: inline-block;">
+      <li>Service Worker for offline capabilities</li>
+      <li>Web App Manifest for installation</li>
+      <li>Responsive design</li>
+    </ul>
+  </div>
+
+  <p>This app is now ready to be enhanced with game functionality!</p>
+
+  <button id="installButton" style="display: none;">Install App</button>
+
   <script>
-    // PWA Service Worker registration - properly configured for localhost
     window.addEventListener('load', () => {
       const statusEl = document.getElementById('status');
-      
+
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/tic-tac-toe-3x3/sw.js', {
           scope: '/tic-tac-toe-3x3/'
@@ -52,22 +70,70 @@
         statusEl.className = 'error';
       }
     });
+
+    let deferredPrompt;
+    const installButton = document.getElementById('installButton');
+    console.log(`installButton <${installButton}>`);
+
+    // Listen for the beforeinstallprompt event
+    window.addEventListener('beforeinstallprompt', (e) => {
+      console.log(`Inside beforeinstallprompt`);
+      // Prevent Chrome from automatically showing the prompt
+      e.preventDefault();
+
+      // Stash the event so it can be triggered later
+      deferredPrompt = e;
+
+      // Show the install button
+      installButton.style.display = 'block';
+    });
+
+    // Setup install button click handler
+    installButton.addEventListener('click', async () => {
+      if (!deferredPrompt) {
+        return;
+      }
+
+      // Show the installation prompt
+      deferredPrompt.prompt();
+
+      // Wait for the user to respond to the prompt
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response to the install prompt: ${outcome}`);
+
+      // We've used the prompt, and can't use it again, discard it
+      deferredPrompt = null;
+
+      // Hide the install button
+      installButton.style.display = 'none';
+
+      // If user accepted, initiate the caching process
+      if (outcome === 'accepted') {
+        // Now we can start caching assets
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          // Signal the service worker to cache files
+          navigator.serviceWorker.controller.postMessage({
+            action: 'CACHE_ASSETS'
+          });
+        }
+      }
+    });
+
+    // Function to check for updates
+    function checkForUpdates() {
+      if ('serviceWorker' in navigator) {
+        // Force the service worker to update
+        navigator.serviceWorker.getRegistration().then(registration => {
+          if (registration) {
+            registration.update();
+          }
+        });
+      }
+    }
+
+    // Add an update button to your UI
+    document.getElementById('updateButton').addEventListener('click', checkForUpdates);
+
   </script>
-</head>
-<body>
-  <h1>Tic-Tac-Toe PWA</h1>
-  <p>Basic PWA setup for a Tic-Tac-Toe game</p>
-  <div id="status">Checking service worker status...</div>
-  
-  <div id="pwa-info">
-    <h2>PWA Features Active</h2>
-    <ul style="text-align: left; display: inline-block;">
-      <li>Service Worker for offline capabilities</li>
-      <li>Web App Manifest for installation</li>
-      <li>Responsive design</li>
-    </ul>
-  </div>
-  
-  <p>This app is now ready to be enhanced with game functionality!</p>
 </body>
 </html>
