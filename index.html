@@ -33,16 +33,8 @@
     window.addEventListener('load', () => {
       const statusEl = document.getElementById('status');
       
-      // First check if we're in a secure context
-      if (!window.isSecureContext) {
-        statusEl.textContent = 'ERROR: Not in a secure context! Service workers require HTTPS or localhost.';
-        statusEl.className = 'error';
-        console.error('You must access this page via http://localhost:3000 - IP addresses require HTTPS');
-        return;
-      }
-      
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('tic-tac-toe-3x3/sw.js', {
+        navigator.serviceWorker.register('/sw.js', {
           scope: '/tic-tac-toe-3x3/'
         })
           .then(registration => {
