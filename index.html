@@ -42,7 +42,9 @@
       }
       
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js')
+        navigator.serviceWorker.register('tic-tac-toe-3x3/sw.js', {
+          scope: '/tic-tac-toe-3x3/'
+        })
           .then(registration => {
             console.log('ServiceWorker registered with scope:', registration.scope);
             statusEl.textContent = 'PWA Service Worker registered successfully! This app can now work offline.';
